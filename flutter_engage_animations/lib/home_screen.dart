@@ -10,6 +10,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Place> _places;
+  bool isListMode = true;
 
   Future<void> _loadingData() async {
     final response = await http.get('http://www.json-generator.com/api/json/get/bUbsitaEaG?indent=2');
@@ -24,19 +25,38 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
+  Widget _getBodyWidget() {
+    if (isListMode) {
+      return HomeListView(
+        places: _places,
+      );
+    } else {
+      return HomeGridView(
+        places: _places,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Flutter Event'),
-        actions: [],
+        title: Text('Flutter Engage Animations'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.block),
+            onPressed: () {
+              setState(() {
+                isListMode = !isListMode;
+              });
+            },
+          ),
+        ],
       ),
       body: _places != null
           ? AnimatedSwitcher(
-              duration: const Duration(milliseconds: 1400),
-              child: HomeListView(
-                places: _places,
-              ),
+              duration: const Duration(milliseconds: 600),
+              child: _getBodyWidget(),
             )
           : const Center(
               child: CircularProgressIndicator(),
@@ -94,24 +114,32 @@ class HomeItem extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => DetailsScreen(place: place),
+          PageRouteBuilder(
+            pageBuilder: (_, animation, __) {
+              return FadeTransition(
+                opacity: animation,
+                child: DetailsScreen(place: place),
+              );
+            },
           ),
         );
       },
       child: Stack(
         children: [
           Positioned.fill(
-            child: Image.network(
-              place.image,
-              fit: BoxFit.cover,
-              loadingBuilder: (_, widget, chunk) {
-                return chunk == null
-                    ? widget
-                    : Center(
-                        child: CircularProgressIndicator(),
-                      );
-              },
+            child: Hero(
+              tag: place.name,
+              child: Image.network(
+                place.image,
+                fit: BoxFit.cover,
+                loadingBuilder: (_, widget, chunk) {
+                  return chunk == null
+                      ? widget
+                      : Center(
+                          child: CircularProgressIndicator(),
+                        );
+                },
+              ),
             ),
           ),
           Positioned(

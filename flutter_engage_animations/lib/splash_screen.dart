@@ -6,16 +6,27 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+  AnimationController _animationController;
+
   @override
   void initState() {
-    Future.delayed(const Duration(seconds: 3)).then(
-      (value) => Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => HomeScreen(),
-        ),
-      ),
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+      lowerBound: 1.0,
+      upperBound: 10.0,
     );
+    _animationController.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => HomeScreen(),
+          ),
+        );
+      }
+    });
+    _animationController.forward();
     super.initState();
   }
 
@@ -23,8 +34,11 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: FlutterLogo(
-          size: 40,
+        child: ScaleTransition(
+          scale: _animationController,
+          child: FlutterLogo(
+            size: 40,
+          ),
         ),
       ),
     );
